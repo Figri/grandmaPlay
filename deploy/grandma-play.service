@@ -1,0 +1,27 @@
+# systemd 服务：开机自启、崩溃自动重启
+# 安装：sudo cp grandma-play.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#       sudo systemctl enable --now grandma-play
+[Unit]
+Description=Grandma Play family game server
+After=network.target
+
+[Service]
+Type=simple
+User=grandma
+WorkingDirectory=/opt/grandma-play
+ExecStart=/usr/bin/node /opt/grandma-play/dist/server.cjs
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# 只监听本机，由 Nginx 对外提供 HTTPS/WSS
+Environment=HOST=127.0.0.1
+# 在 Nginx 后面，从 X-Forwarded-For 读取真实 IP（用于限流）
+Environment=TRUST_PROXY=1
+Environment=DATA_DIR=/opt/grandma-play/data
+Restart=always
+RestartSec=2
+# 停止时给服务时间保存数据
+TimeoutStopSec=10
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
