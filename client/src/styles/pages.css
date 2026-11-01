@@ -599,6 +599,10 @@
 .game-title-name {
   font-weight: 900;
   font-size: 1.15rem;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .game-title-sub {
   font-size: 0.8rem;

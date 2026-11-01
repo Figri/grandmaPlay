@@ -155,7 +155,13 @@ export function HomePage() {
                 <button
                   key={g.id}
                   className={`game-card${g.available ? '' : ' is-soon'}`}
-                  onClick={() => (g.available ? setPicked(g) : toast(`${g.name}正在制作中，敬请期待`))}
+                  onClick={() => {
+                    if (!g.available) toast(`${g.name}正在制作中，敬请期待`);
+                    else if (g.modes.length === 1 && g.modes[0] === 'solo') {
+                      unlockAudio();
+                      navigate(`/play/${g.id}`);
+                    } else setPicked(g);
+                  }}
                   aria-disabled={!g.available}
                   data-testid={`game-${g.id}`}
                 >

@@ -65,9 +65,15 @@ export const TETRIS_META: GameMeta = {
   minPlayers: 1,
   maxPlayers: 1,
   modes: ['solo'],
-  available: false,
+  available: true,
   playersLabel: '1人',
-  howToPlay: [],
+  howToPlay: [
+    '方块会从上往下慢慢落，把一整行摆满就会消掉，还能得分。',
+    '“左移”“右移”挪位置，“旋转”转方向；按住按钮可以连续移动。',
+    '“加速”让方块落得快一点，“到底”让方块一下落到最下面。',
+    '每消 10 行升一级，方块会落得更快。方块堆到顶就结束。',
+    '电脑上：方向键移动，↑ 旋转，空格一落到底，P 暂停。',
+  ],
 };
 
 export const SNAKE_META: GameMeta = {
@@ -77,9 +83,15 @@ export const SNAKE_META: GameMeta = {
   minPlayers: 1,
   maxPlayers: 1,
   modes: ['solo'],
-  available: false,
+  available: true,
   playersLabel: '1人',
-  howToPlay: [],
+  howToPlay: [
+    '用方向按钮让小蛇转弯，吃到红色的果子就会变长、加 1 分。',
+    '撞到墙或者咬到自己就结束了。',
+    '可以选“慢”“中”“快”三种速度，刚开始建议选“慢”。',
+    '手机上也可以直接在棋盘上往想去的方向滑一下。',
+    '电脑上：方向键或 WASD 控制，空格暂停。',
+  ],
 };
 
 export const GAME_CATALOG: GameMeta[] = [

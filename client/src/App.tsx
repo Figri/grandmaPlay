@@ -2,6 +2,7 @@ import { useApp, dismissClosedNotice } from './net/connection';
 import { navigate, useRoute } from './router';
 import { HomePage } from './pages/HomePage';
 import { RoomPage } from './pages/RoomPage';
+import { SoloPage } from './pages/SoloPage';
 import { ConnectionBanner, Dialog, Loading, Toasts } from './components/common';
 
 export function App() {
@@ -12,7 +13,10 @@ export function App() {
 
   return (
     <>
-      {!everConnected ? (
+      {route.name === 'play' ? (
+        // 单机游戏不需要联网，断网也能玩
+        <SoloPage key={route.id} id={route.id} />
+      ) : !everConnected ? (
         <div className="page">
           {fatal ? <div className="center-fill"><p className="hint">{fatal}</p></div> : <Loading text="正在连接游戏屋…" />}
         </div>
@@ -21,7 +25,7 @@ export function App() {
       ) : (
         <HomePage />
       )}
-      <ConnectionBanner />
+      {route.name !== 'play' && <ConnectionBanner />}
       <Toasts />
       {closed && (
         <Dialog

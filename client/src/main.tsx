@@ -6,6 +6,7 @@ import { startConnection } from './net/connection';
 import './styles/global.css';
 import './styles/pages.css';
 import './games/gomoku/gomoku.css';
+import './games/solo.css';
 
 installViewportHeight();
 startConnection();

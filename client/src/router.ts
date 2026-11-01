@@ -1,13 +1,15 @@
 import { useSyncExternalStore } from 'react';
 
-/** 极简路由：/ 首页，/r/房间号 房间页。邀请链接就是 /r/房间号。 */
-export type Route = { name: 'home' } | { name: 'room'; code: string };
+/** 极简路由：/ 首页，/r/房间号 房间页（邀请链接），/play/游戏ID 单机游戏。 */
+export type Route = { name: 'home' } | { name: 'room'; code: string } | { name: 'play'; id: string };
 
 const listeners = new Set<() => void>();
 
 function parse(pathname: string): Route {
   const m = pathname.match(/^\/r\/([A-Za-z0-9]{4,12})\/?$/);
   if (m) return { name: 'room', code: m[1].toUpperCase() };
+  const p = pathname.match(/^\/play\/([a-z0-9-]{2,24})\/?$/);
+  if (p) return { name: 'play', id: p[1] };
   return { name: 'home' };
 }
 
