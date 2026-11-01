@@ -1,7 +1,5 @@
 import { randomInt } from 'node:crypto';
 import {
-  ROOM_CODE_ALPHABET,
-  ROOM_CODE_LENGTH,
   getGameMeta,
   isValidRoomCode,
   normalizeRoomCode,
@@ -17,6 +15,7 @@ import {
   type Snapshot,
 } from '@grandma/shared';
 import type { PlayerStore } from './players';
+import { generateRoomCode } from './codes';
 
 export interface SeatState {
   playerId: string;
@@ -570,11 +569,7 @@ export class RoomManager {
   }
 
   private generateCode(): string {
-    for (;;) {
-      let code = '';
-      for (let i = 0; i < ROOM_CODE_LENGTH; i++) code += ROOM_CODE_ALPHABET[randomInt(ROOM_CODE_ALPHABET.length)];
-      if (!this.rooms.has(code)) return code;
-    }
+    return generateRoomCode((c) => this.rooms.has(c));
   }
 
   // ───────────────────────── 持久化 ─────────────────────────

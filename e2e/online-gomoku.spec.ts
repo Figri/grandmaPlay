@@ -219,14 +219,15 @@ test('房间号输错、房间已满、对局中不能加入', async ({ browser 
   // 首页输入错误房间号
   await C.page.goto('/');
   await C.page.getByTestId('nickname-input').fill('路人');
-  await C.page.getByTestId('code-input').fill('ZZZZZZ');
+  // 4444 不会被分配（服务端尽量不发带 4 的号码），用作“不存在的房间”
+  await C.page.getByTestId('code-input').fill('4444');
   await C.page.getByTestId('code-join').click();
   await expect(C.page.getByText('没有找到这个房间')).toBeVisible();
 
-  // 首页输入正确房间号（小写也可以）直接进入
+  // 首页输入正确房间号直接进入
   await B.page.goto('/');
   await B.page.getByTestId('nickname-input').fill('爸爸');
-  await B.page.getByTestId('code-input').fill(code.toLowerCase());
+  await B.page.getByTestId('code-input').fill(code);
   await B.page.getByTestId('code-join').click();
   await expect(B.page.getByTestId('waiting-room')).toBeVisible();
 

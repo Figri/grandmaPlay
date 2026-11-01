@@ -1,151 +1,122 @@
-# 部署到阿里云（使用现有 ECS + 自己的域名）
+# 部署：阿里云美国（硅谷）服务器 + figri.me
 
-目标：`https://你的域名` 打开游戏屋，联机走 `wss://`。不需要购买新服务。
+硅谷属于海外地域，**不需要 ICP 备案**，域名解析好就能直接用 HTTPS。
 
-> 构建产物只有两样东西：`dist/public/`（网页）和 `dist/server.cjs`（单文件服务端，已打包全部依赖）。
-> 服务器上**只需要 Node.js**，不需要 `npm install`，避免国内服务器装依赖慢的问题。
+最终效果：家人打开 **https://figri.me** 玩，邀请链接形如 **https://figri.me/r/8888**。
 
-## 0. 先确认两件事
+整个过程分 4 步，大约 15 分钟，全部在网页上操作，**不需要在自己电脑上装任何软件**。
 
-### 0.1 域名备案（重要）
+---
 
-- 如果 ECS 在**中国内地**地域（华东、华北、华南等），域名**必须完成 ICP 备案**才能通过 80/443 端口访问，否则阿里云会拦截。备案在阿里云控制台“ICP 代备案管理系统”办理，个人备案一般 1–3 周。
-- 如果 ECS 在**中国香港或海外**地域，不需要备案，可以直接用。
-- 备案完成前的临时办法：直接用 `http://服务器公网IP:端口` 访问（在安全组里临时放行该端口，`HOST=0.0.0.0`）。游戏功能都能用（复制链接会自动退回兼容方式），只是没有 HTTPS。
+## 第 1 步：阿里云安全组放行端口
 
-### 0.2 服务器配置
+阿里云控制台 → **云服务器 ECS** → 左上角地域选 **美国（硅谷）** → 实例 → 点进你的服务器 → **安全组** → 配置规则 → **入方向** → 手动添加：
 
-最低 1 核 1G 就够家庭使用。系统以 Alibaba Cloud Linux 3 / CentOS / Ubuntu 为例。
+| 端口 | 授权对象 | 用途 |
+| --- | --- | --- |
+| 80/80 | 0.0.0.0/0 | 网页（申请证书也要用） |
+| 443/443 | 0.0.0.0/0 | HTTPS 网页 + 联机 |
+| 22/22 | 0.0.0.0/0（通常已有） | 远程登录 |
 
-## 1. 一次性初始化（在服务器上执行）
+同一页面记下服务器的 **公网 IP**（下文写作 `服务器IP`）。
 
-```bash
-# 1) 安装 Node.js 22（任选一种）
-# Alibaba Cloud Linux / CentOS：
-curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash - && sudo yum install -y nodejs
-# Ubuntu：
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - && sudo apt-get install -y nodejs
-# 如果上面的源访问慢，可以用国内镜像下载二进制包：
-#   https://npmmirror.com/mirrors/node/ 选 v22.x linux-x64，解压到 /usr/local 并把 bin 加入 PATH
-node -v
+## 第 2 步：域名解析
 
-# 2) 安装 Nginx
-sudo yum install -y nginx    # 或 sudo apt-get install -y nginx
-sudo systemctl enable --now nginx
+figri.me 在哪里买的，就去哪里改解析（在阿里云买的：控制台 → **云解析 DNS** → figri.me → 解析设置）。添加两条记录：
 
-# 3) 创建运行用户和目录
-sudo useradd -r -s /sbin/nologin grandma || true
-sudo mkdir -p /opt/grandma-play/data /opt/grandma-play/releases
-sudo chown -R grandma:grandma /opt/grandma-play
-```
+| 记录类型 | 主机记录 | 记录值 |
+| --- | --- | --- |
+| A | `@` | 服务器IP |
+| A | `www` | 服务器IP |
 
-### 1.1 阿里云安全组
+> 如果 figri.me 已经用来放别的网站，可以改用子域名，比如主机记录填 `game`，下面的命令里把 `figri.me` 换成 `game.figri.me` 即可。
 
-ECS 控制台 → 实例 → 安全组 → 入方向：放行 **80** 和 **443**（TCP，来源 0.0.0.0/0）。**不要**放行 3000，Node 只监听本机。
+解析一般几分钟生效。可以在自己电脑上 `ping figri.me` 看是不是返回服务器IP。
 
-### 1.2 域名解析
+## 第 3 步：登录服务器，粘贴一条命令
 
-阿里云“云解析 DNS” → 给域名添加 A 记录，例如 `game` → 服务器公网 IP（得到 `game.你的域名.com`）。
+阿里云控制台 → 实例 → 点 **远程连接** → 选 **通过 Workbench 远程连接** → 登录（用 root 账号）。
 
-## 2. 上传程序并注册服务
-
-在**你自己的电脑**上（项目目录）：
+在出现的黑色命令窗口里粘贴下面这一行（把邮箱换成你的，用于证书到期提醒），回车：
 
 ```bash
-npm install
-npm run build
-scp -r dist root@服务器IP:/opt/grandma-play/
-scp deploy/grandma-play.service root@服务器IP:/etc/systemd/system/
+curl -fsSL https://raw.githubusercontent.com/Figri/grandmaPlay/ccr-7e69b40d-3yrkbk/deploy/setup-server.sh | bash -s -- figri.me 你的邮箱@example.com
 ```
 
-在服务器上：
+脚本会自动完成（约 5–10 分钟）：
+
+1. 安装 Nginx、git、Node.js 22（内存小于 2G 会自动加交换空间，防止构建失败）
+2. 从 GitHub 下载代码、安装依赖、构建
+3. 注册开机自启的服务 `grandma-play`（崩溃自动重启，只监听本机 3000 端口）
+4. 配置 Nginx 反向代理（包含 WebSocket 升级，联机走 WSS）
+5. 检查域名是否已经解析到这台服务器
+6. 申请 Let's Encrypt 免费证书（acme.sh，**到期前自动续期**），启用 HTTPS，HTTP 自动跳转 HTTPS
+
+最后看到绿色的 **“全部完成！打开 https://figri.me 就能玩了”** 就成功了。
+
+> 如果提示“域名还没有解析到这台服务器”：说明第 2 步还没生效。等几分钟后**再粘贴运行一次同样的命令**即可（脚本可以重复运行）。在此期间可以先用 `http://服务器IP` 访问试玩。
+
+## 第 4 步：验证
+
+用手机打开 https://figri.me ，右上角小圆点是**绿色**表示已连上服务器。建一个五子棋房间，把邀请链接发到微信群，让家人用另一台手机点开试一局。
+
+---
+
+## 以后更新程序
+
+我（或下一位开发者）把新功能推送到 GitHub 后，在服务器 Workbench 里运行：
 
 ```bash
-sudo chown -R grandma:grandma /opt/grandma-play
-sudo systemctl daemon-reload
-sudo systemctl enable --now grandma-play
-curl http://127.0.0.1:3000/healthz      # 返回 {"ok":true,...} 即正常
-journalctl -u grandma-play -f           # 查看日志
+sudo bash /opt/grandma-play/app/deploy/update.sh
 ```
 
-## 3. 配置 HTTPS 和 WSS
+会拉取最新代码、构建、重启。正在进行的对局会保存，大家页面上会闪一下“正在重新连接…”，然后自动回到原来的座位。
 
-### 3.1 申请证书（任选一种）
+## 常用命令
 
-**方式 A：Let's Encrypt（免费，自动续期，推荐）**
+| 做什么 | 命令 |
+| --- | --- |
+| 看服务状态 | `systemctl status grandma-play` |
+| 看实时日志 | `journalctl -u grandma-play -f` |
+| 重启服务 | `systemctl restart grandma-play` |
+| 健康检查 | `curl http://127.0.0.1:3000/healthz` |
+| 查看证书 | `~/.acme.sh/acme.sh --list` |
+| Nginx 配置 | `/etc/nginx/conf.d/grandma-play.conf`（脚本生成） |
 
-```bash
-sudo mkdir -p /var/www/certbot
-# Alibaba Cloud Linux / CentOS: sudo yum install -y certbot   Ubuntu: sudo apt-get install -y certbot
-# 先用只有 80 端口的临时配置让验证通过：
-sudo tee /etc/nginx/conf.d/grandma-play.conf >/dev/null <<'EOF'
-server {
-    listen 80;
-    server_name game.example.com;
-    location /.well-known/acme-challenge/ { root /var/www/certbot; }
-    location / { return 200 'ok'; }
-}
-EOF
-sudo nginx -t && sudo systemctl reload nginx
-sudo certbot certonly --webroot -w /var/www/certbot -d game.example.com
-# 续期由 certbot 自带的定时任务完成；续期后需要 reload nginx：
-echo 'deploy-hook = systemctl reload nginx' | sudo tee -a /etc/letsencrypt/cli.ini
-```
+## 文件位置
 
-**方式 B：阿里云免费 SSL 证书**
+| 路径 | 内容 |
+| --- | --- |
+| `/opt/grandma-play/app` | 代码（git 仓库）与构建产物 `dist/` |
+| `/opt/grandma-play/data/state.json` | 房间与临时身份（没有隐私数据，丢了只是正在进行的房间消失） |
+| `/etc/systemd/system/grandma-play.service` | 系统服务 |
+| `/etc/nginx/ssl/figri.me/` | HTTPS 证书 |
 
-阿里云控制台“数字证书管理服务” → 免费证书 → 申请并下载 **Nginx 格式**，把 `.pem` 和 `.key` 上传到服务器（例如 `/etc/nginx/cert/`），在下面的配置里改成对应路径。注意免费证书有效期较短，需要到期前手动更换。
+## 关于从国内访问美国服务器
 
-### 3.2 Nginx 配置
+- 五子棋、斗地主这类回合制游戏对延迟不敏感，跨太平洋 150–250ms 的延迟感觉不到。
+- 晚高峰国际线路偶尔会慢或短暂断开：程序会自动重连回原座位，不会判负、不会丢牌局。
+- 如果以后觉得某些家人那边经常卡，可以考虑换到阿里云**香港**地域（同样不需要备案，离国内更近），部署方法完全一样。
 
-```bash
-sudo cp deploy/nginx.conf.example /etc/nginx/conf.d/grandma-play.conf   # 文件从项目里上传过去
-sudo sed -i 's/game.example.com/game.你的域名.com/g' /etc/nginx/conf.d/grandma-play.conf
-sudo nginx -t && sudo systemctl reload nginx
-```
+## 环境变量（一般不用改）
 
-关键点（配置示例里已包含）：
-
-- `/socket.io/` 必须带 `Upgrade` / `Connection "upgrade"` 头，才能走 WebSocket（WSS）。
-- `proxy_read_timeout 3600s`，避免空闲连接被 Nginx 60 秒断开。
-- systemd 里设置了 `TRUST_PROXY=1`，限流才能拿到真实 IP。
-- 如果 Nginx 版本较老（< 1.25）不认识 `http2 on;`，改成 `listen 443 ssl http2;`。
-
-打开 `https://game.你的域名.com`，应该能看到游戏大厅，右上角绿点表示已连上服务器。
-
-## 4. 以后发布新版本
-
-在自己电脑上一条命令（会先跑测试、构建，再上传、切换、重启、健康检查）：
-
-```bash
-SERVER=root@服务器IP ./deploy/deploy.sh
-```
-
-发版重启时，正在进行的对局会保存到 `data/state.json`，大家的页面会显示“正在重新连接…”，一两秒后自动回到原来的座位和局面。
-
-回滚：服务器上 `/opt/grandma-play/dist.old` 是上一个版本，`mv dist dist.bad && mv dist.old dist && systemctl restart grandma-play`。
-
-## 5. 环境变量
+在 `/etc/systemd/system/grandma-play.service` 里修改后执行 `systemctl daemon-reload && systemctl restart grandma-play`。
 
 | 变量 | 默认 | 说明 |
 | --- | --- | --- |
 | `PORT` | 3000 | 监听端口 |
-| `HOST` | 0.0.0.0 | 生产环境设为 127.0.0.1，只让 Nginx 访问 |
-| `DATA_DIR` | `dist/../data` | 持久化目录 |
-| `TRUST_PROXY` | 0 | 在 Nginx 后面设为 1 |
+| `HOST` | 127.0.0.1 | 只让 Nginx 访问 |
+| `DATA_DIR` | /opt/grandma-play/data | 数据目录 |
+| `TRUST_PROXY` | 1 | 在 Nginx 后面，从 X-Forwarded-For 取真实 IP（限流用） |
 | `ROOM_IDLE_HOURS` | 6 | 全员离线多久后关闭房间 |
 | `ROOM_MAX_IDLE_HOURS` | 24 | 无任何动静多久后关闭房间 |
 | `PING_INTERVAL_MS` / `PING_TIMEOUT_MS` | 15000 / 10000 | 心跳间隔 / 超时（决定多快显示“离线”） |
 
-## 6. 备份
+## 排查
 
-只有一个数据文件：`/opt/grandma-play/data/state.json`（房间和临时身份，没有个人隐私数据）。丢了也只是正在进行的房间消失、大家重新建房，可以不备份。
-
-## 7. 排查
-
-| 现象 | 检查 |
+| 现象 | 处理 |
 | --- | --- |
-| 打不开网页 | 安全组 80/443、域名解析、备案状态、`systemctl status nginx` |
-| 网页能开，一直“正在连接” | Nginx `/socket.io/` 的 Upgrade 配置；`journalctl -u grandma-play` |
-| 一分钟左右就断线 | Nginx `proxy_read_timeout` 没设置 |
-| 很多人“操作太频繁”/“尝试次数过多” | 是否设置了 `TRUST_PROXY=1`（否则所有人都是同一个 IP 127.0.0.1） |
+| 证书申请失败 | 安全组是否放行 80；域名是否已解析到本机；重新运行安装命令 |
+| 网页能开，一直“正在连接” | `journalctl -u grandma-play -n 50` 看报错；`nginx -t` 检查配置 |
+| 打不开网页 | 安全组 443；`systemctl status nginx` |
+| 很多人提示“操作太频繁” | 确认服务里有 `TRUST_PROXY=1` |

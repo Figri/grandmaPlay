@@ -44,7 +44,7 @@ export async function createOnlineRoom(p: Player, name: string): Promise<string>
   await p.page.getByTestId('create-online').click();
   await expect(p.page.getByTestId('waiting-room')).toBeVisible();
   const code = (await p.page.getByTestId('room-code').textContent())!.replace(/\s/g, '');
-  expect(code).toMatch(/^[A-Z0-9]{6}$/);
+  expect(code).toMatch(/^\d{4}$/);
   await expect(p.page).toHaveURL(new RegExp(`/r/${code}$`));
   return code;
 }

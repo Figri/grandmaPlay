@@ -3,6 +3,7 @@ import { ENGINES } from '@grandma/shared/registry';
 import { isValidRoomCode, type ClosedNotice } from '@grandma/shared';
 import { PlayerStore } from '../src/players';
 import { RoomManager, type Room } from '../src/rooms';
+import { LUCKY_TIERS, generateRoomCode } from '../src/codes';
 
 interface Harness {
   rooms: RoomManager;
@@ -102,6 +103,23 @@ describe('RoomManager', () => {
       }
     }
     expect(codes.size).toBe(200);
+  });
+
+  it('hands out 4-digit lucky codes first (8888, 6666, 1688 ...) and avoids 4', () => {
+    const p = h.newPlayer('奶奶');
+    const r = h.rooms.createRoom(p, { gameId: 'gomoku', nickname: '奶奶' });
+    expect(r.ok && /^\d{4}$/.test(r.code)).toBe(true);
+    if (r.ok) expect(LUCKY_TIERS[0]).toContain(r.code);
+    const taken = new Set<string>();
+    for (let i = 0; i < 400; i++) taken.add(generateRoomCode((c) => taken.has(c)));
+    expect(taken.size).toBe(400);
+    for (const c of taken) expect(c).not.toContain('4');
+    expect(taken.has('8888') && taken.has('6666') && taken.has('1688')).toBe(true);
+    // 号码几乎用完时也能分配
+    const all = new Set<string>();
+    for (let i = 0; i < 10000; i++) all.add(String(i).padStart(4, '0'));
+    all.delete('4444');
+    expect(generateRoomCode((c) => all.has(c))).toBe('4444');
   });
 
   it('requires a nickname and an available game', () => {

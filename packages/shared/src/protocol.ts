@@ -127,18 +127,19 @@ export interface ClosedNotice {
   message: string;
 }
 
-/** 房间码字母表：去掉易混淆的 0/O/1/I/L */
-export const ROOM_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
-export const ROOM_CODE_LENGTH = 6;
+/** 房间号：4 位数字（服务端优先分配 8888、6666、1688 这类吉利号码） */
+export const ROOM_CODE_LENGTH = 4;
 
 export function normalizeRoomCode(input: string): string {
-  return input.toUpperCase().replace(/[\s-]/g, '').slice(0, 12);
+  // 全角数字转半角，去掉空格等非数字字符
+  return input
+    .replace(/[\uff10-\uff19]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0))
+    .replace(/\D/g, '')
+    .slice(0, 8);
 }
 
 export function isValidRoomCode(code: string): boolean {
-  if (code.length !== ROOM_CODE_LENGTH) return false;
-  for (const ch of code) if (!ROOM_CODE_ALPHABET.includes(ch)) return false;
-  return true;
+  return new RegExp(`^\\d{${ROOM_CODE_LENGTH}}$`).test(code);
 }
 
 export const NICKNAME_MAX = 10;

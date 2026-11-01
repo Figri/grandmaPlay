@@ -66,7 +66,7 @@ export function HomePage() {
   const joinByCode = async () => {
     const c = normalizeRoomCode(code);
     if (!isValidRoomCode(c)) {
-      setCodeError(`房间号是 ${ROOM_CODE_LENGTH} 位字母或数字`);
+      setCodeError(`房间号是 ${ROOM_CODE_LENGTH} 位数字`);
       return;
     }
     const nickname = requireName();
@@ -128,14 +128,13 @@ export function HomePage() {
                 className={`input code-input${codeError ? ' is-error' : ''}`}
                 value={code}
                 onChange={(e) => {
-                  setCode(e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, ROOM_CODE_LENGTH));
+                  setCode(normalizeRoomCode(e.target.value).slice(0, ROOM_CODE_LENGTH));
                   setCodeError(null);
                 }}
-                placeholder="输入房间号"
-                autoCapitalize="characters"
+                placeholder="4 位数字"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
                 enterKeyHint="go"
                 data-testid="code-input"
               />

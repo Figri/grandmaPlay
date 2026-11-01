@@ -150,9 +150,9 @@
 .code-input {
   flex: 1;
   min-width: 0;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.35em;
   font-weight: 800;
-  text-transform: uppercase;
+  font-size: 1.35rem;
 }
 .code-input::placeholder {
   letter-spacing: 0.02em;
@@ -371,9 +371,10 @@
   font-weight: 700;
 }
 .room-code {
-  font-size: 2.6rem;
+  font-size: 3rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
+  padding-left: 0.18em;
   line-height: 1.15;
   color: var(--primary);
   font-family: 'SF Mono', 'Menlo', 'Consolas', var(--font);
@@ -519,7 +520,7 @@
     padding: 10px 12px;
   }
   .room-code {
-    font-size: 2.1rem;
+    font-size: 2.4rem;
   }
   .invite-hint {
     font-size: 0.88rem;
@@ -562,7 +563,7 @@
 }
 @media (min-height: 800px) and (min-width: 700px) {
   .room-code {
-    font-size: 3.2rem;
+    font-size: 3.8rem;
   }
   .invite-card {
     padding: 28px 20px;

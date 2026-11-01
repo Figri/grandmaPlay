@@ -8,7 +8,7 @@ import { Avatar, Dialog } from '../components/common';
 import { IconBack, IconCheck, IconCopy, IconRobot, IconShare } from '../components/icons';
 
 function formatCode(code: string) {
-  return code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
+  return code;
 }
 
 export function inviteText(meta: GameMeta, code: string, from: string) {
