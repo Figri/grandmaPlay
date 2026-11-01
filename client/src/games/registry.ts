@@ -1,6 +1,7 @@
-import { GOMOKU_META } from '@grandma/shared';
+import { DOUDIZHU_META, GOMOKU_META } from '@grandma/shared';
 import type { ClientGameModule } from './types';
 import GomokuGame from './gomoku/GomokuGame';
+import DoudizhuGame from './doudizhu/DoudizhuGame';
 
 /**
  * 客户端游戏注册表：meta.id → 界面组件。
@@ -10,4 +11,5 @@ import GomokuGame from './gomoku/GomokuGame';
  */
 export const CLIENT_GAMES: Record<string, ClientGameModule> = {
   gomoku: { meta: GOMOKU_META, Component: GomokuGame },
+  doudizhu: { meta: DOUDIZHU_META, Component: DoudizhuGame },
 };

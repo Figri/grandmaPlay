@@ -144,16 +144,19 @@ export function gomokuResult(state: GomokuState): GameResult | null {
   }
   const winner = state.winnerSeat!;
   const loser = 1 - winner;
+  // 积分：赢一局记 1 分
+  const scores = [0, 0];
+  scores[winner] = 1;
   const wName = state.names[winner] ?? '';
   const lName = state.names[loser] ?? '';
   const wColor = colorName(colorOfSeat(state, winner));
   switch (state.endReason) {
     case 'five':
-      return { winners: [winner], reason: 'five', summary: `${wName}（${wColor}）五子连珠获胜` };
+      return { winners: [winner], reason: 'five', summary: `${wName}（${wColor}）五子连珠获胜`, scores };
     case 'resign':
-      return { winners: [winner], reason: 'resign', summary: `${lName} 认输，${wName}（${wColor}）获胜` };
+      return { winners: [winner], reason: 'resign', summary: `${lName} 认输，${wName}（${wColor}）获胜`, scores };
     case 'leave':
-      return { winners: [winner], reason: 'leave', summary: `${lName} 退出了对局，${wName} 获胜` };
+      return { winners: [winner], reason: 'leave', summary: `${lName} 退出了对局，${wName} 获胜`, scores };
   }
   return null;
 }

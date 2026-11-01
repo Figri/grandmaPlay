@@ -194,6 +194,50 @@ describe('socket gateway (two independent clients)', () => {
     b2.close();
   });
 
+  it('doudizhu: three clients, hidden hands, bidding and play stay in sync', async () => {
+    const players = [await connected(), await connected(), await connected()];
+    const [a, b, c] = players;
+    const created = await a.emit<{ code: string }>(C2S.createRoom, { gameId: 'doudizhu', nickname: '奶奶' });
+    if (!created.ok) throw new Error(created.error);
+    expect((await b.emit(C2S.joinRoom, { code: created.code, nickname: '小明' })).ok).toBe(true);
+    expect((await c.emit(C2S.joinRoom, { code: created.code, nickname: '外婆' })).ok).toBe(true);
+    await b.emit(C2S.setReady, { ready: true });
+    await c.emit(C2S.setReady, { ready: true });
+    expect((await a.emit(C2S.startGame)).ok).toBe(true);
+    type V = { myHand: number[]; handCounts: number[]; turn: number; phase: string; landlord: number | null; bottom: number[] | null };
+    const view = (p: Client) => p.snapshot!.game!.view as V;
+    for (const p of players) await p.until((x) => x.snapshot?.room.status === 'playing');
+    const hands = players.map((p) => view(p).myHand);
+    expect(hands.map((h) => h.length)).toEqual([17, 17, 17]);
+    expect(new Set(hands.flat()).size).toBe(51);
+    for (const p of players) {
+      const v = view(p) as unknown as Record<string, unknown>;
+      expect(v.hands).toBeUndefined();
+      expect(v.seed).toBeUndefined();
+      expect(v.revealedHands).toBeNull();
+      expect(v.bottom).toBeNull();
+    }
+    // 轮到谁谁叫 3 分
+    const turn = view(a).turn;
+    const bidder = players[turn];
+    expect((await bidder.emit(C2S.gameAction, { actionId: 'bid-3', baseVersion: bidder.snapshot!.game!.version, action: { type: 'bid', value: 3 } })).ok).toBe(true);
+    for (const p of players) await p.until((x) => view(x).phase === 'playing');
+    expect(view(bidder).myHand).toHaveLength(20);
+    expect(view(a).landlord).toBe(turn);
+    expect(view(a).bottom).toHaveLength(3);
+    // 别人替地主出牌：不行
+    const other = players[(turn + 1) % 3];
+    const wrong = await other.emit(C2S.gameAction, { actionId: 'x', baseVersion: other.snapshot!.game!.version, action: { type: 'play', cards: [view(other).myHand[0]] } });
+    expect(wrong).toMatchObject({ ok: false, code: 'NOT_YOUR_TURN' });
+    // 地主出最小的一张
+    const card = view(bidder).myHand[view(bidder).myHand.length - 1];
+    expect((await bidder.emit(C2S.gameAction, { actionId: 'p1', baseVersion: bidder.snapshot!.game!.version, action: { type: 'play', cards: [card] } })).ok).toBe(true);
+    for (const p of players) await p.until((x) => view(x).handCounts[turn] === 19);
+    // 打出的牌对所有人可见；但手牌仍然隐藏
+    expect((a.snapshot!.game!.view as { lastPlay: { cards: number[] } }).lastPlay.cards).toEqual([card]);
+    players.forEach((p) => p.close());
+  });
+
   it('rate-limits wrong room codes per IP', async () => {
     const c = await connected();
     let limited = false;

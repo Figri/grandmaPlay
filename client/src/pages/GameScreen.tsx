@@ -217,11 +217,30 @@ function ResultPanel({
           {title}
         </h2>
         <p className="result-summary">{result.summary}</p>
+        {result.scores && (
+          <ul className="score-list" data-testid="score-list">
+            {room.seats.map((seat) =>
+              seat.playerId ? (
+                <li key={seat.seat} className={seat.playerId === you.playerId ? 'is-me' : undefined}>
+                  <span className="score-name">
+                    {seat.nickname}
+                    {seat.playerId === you.playerId ? '（我）' : ''}
+                  </span>
+                  <span className={`score-delta${(result.scores![seat.seat] ?? 0) > 0 ? ' is-up' : (result.scores![seat.seat] ?? 0) < 0 ? ' is-down' : ''}`}>
+                    {(result.scores![seat.seat] ?? 0) > 0 ? '+' : ''}
+                    {result.scores![seat.seat] ?? 0}
+                  </span>
+                  <span className="score-total">累计 {room.totals[seat.playerId] ?? 0}</span>
+                </li>
+              ) : null,
+            )}
+          </ul>
+        )}
         <div className="result-actions">{rematchButton}</div>
         {mySeat !== null && <p className="result-status">{statusLine}</p>}
         <div className="result-links">
           <button className="btn btn-ghost btn-sm" onClick={() => onCollapse(true)} data-testid="view-board">
-            看看棋盘
+            {meta.id === 'gomoku' ? '看看棋盘' : '看看牌桌'}
           </button>
           <button className="btn btn-ghost btn-sm" onClick={onExit}>
             退出房间

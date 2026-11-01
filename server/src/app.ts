@@ -62,6 +62,7 @@ export function createGameServer(config: ServerConfig): GameServer {
     isOnline,
     idleTtlMs: config.idleTtlMs,
     maxIdleMs: config.maxIdleMs,
+    botDelayScale: config.botDelayScale,
     log,
     onChange: (room) => {
       broadcastRoom(room);

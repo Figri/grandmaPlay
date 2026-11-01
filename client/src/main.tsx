@@ -7,6 +7,7 @@ import './styles/global.css';
 import './styles/pages.css';
 import './games/gomoku/gomoku.css';
 import './games/solo.css';
+import './games/doudizhu/doudizhu.css';
 
 installViewportHeight();
 startConnection();

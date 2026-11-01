@@ -28,10 +28,18 @@ export const DOUDIZHU_META: GameMeta = {
   tagline: '三人叫地主，农民齐心斗地主',
   minPlayers: 3,
   maxPlayers: 3,
-  modes: ['online'],
-  available: false,
+  modes: ['online', 'bot'],
+  available: true,
   playersLabel: '3人',
-  howToPlay: [],
+  howToPlay: [
+    '三个人玩，每人 17 张牌，剩 3 张底牌。人不够时房主可以“让电脑来”补位。',
+    '先叫分：轮流叫 1 分、2 分、3 分或不叫，叫分最高的当地主，拿走 3 张底牌，先出牌。',
+    '另外两家是农民，一起对付地主。谁先把手里的牌出完，谁那一边就赢。',
+    '点牌选中（选中的牌会往上抬），也可以在牌上横着滑动一次选好几张；点“出牌”。',
+    '压不过或不想出就点“不出”。不知道出什么就点“提示”，会帮你选好能出的牌。',
+    '牌型：单张、对子、三张、三带一、三带一对、顺子（5 张起）、连对（3 对起）、飞机、四带二、炸弹、王炸。',
+    '炸弹和王炸能压一切；每出一个炸弹分数翻倍，春天再翻倍。',
+  ],
 };
 
 export const GUANDAN_META: GameMeta = {

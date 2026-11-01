@@ -34,6 +34,7 @@ export default defineConfig({
       PING_INTERVAL_MS: '1500',
       PING_TIMEOUT_MS: '1500',
       QUIET: '1',
+      BOT_DELAY_SCALE: '0.15',
     },
   },
 });

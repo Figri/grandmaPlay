@@ -15,6 +15,8 @@ export interface ServerConfig {
   pingIntervalMs: number;
   pingTimeoutMs: number;
   quiet: boolean;
+  /** 电脑玩家思考时间倍率（1 = 正常；测试用 0.05） */
+  botDelayScale: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, defaults: Partial<ServerConfig> = {}): ServerConfig {
@@ -30,5 +32,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, defaults: Parti
     pingIntervalMs: num(env.PING_INTERVAL_MS, defaults.pingIntervalMs ?? 15000),
     pingTimeoutMs: num(env.PING_TIMEOUT_MS, defaults.pingTimeoutMs ?? 10000),
     quiet: env.QUIET === '1' || (defaults.quiet ?? false),
+    botDelayScale: num(env.BOT_DELAY_SCALE, defaults.botDelayScale ?? 1),
   };
 }

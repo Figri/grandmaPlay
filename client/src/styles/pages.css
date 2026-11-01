@@ -656,6 +656,49 @@
   color: var(--text-2);
   margin-top: 2px;
 }
+.score-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  text-align: left;
+}
+.score-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-weight: 700;
+}
+.score-list li.is-me {
+  color: var(--primary-press);
+}
+.score-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.score-delta {
+  min-width: 3em;
+  text-align: right;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+.score-delta.is-up {
+  color: var(--green);
+}
+.score-delta.is-down {
+  color: var(--danger);
+}
+.score-total {
+  min-width: 4.5em;
+  text-align: right;
+  color: var(--text-2);
+  font-size: 0.88rem;
+}
 .result-actions {
   display: flex;
   justify-content: center;

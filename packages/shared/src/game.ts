@@ -44,6 +44,8 @@ export interface GameResult {
   /** 给人看的结果说明，例如 “黑棋五子连珠” */
   summary: string;
   draw?: boolean;
+  /** 本局每个座位的得分变化（房间会累计成总积分），例如斗地主 [+4, -2, -2] */
+  scores?: number[];
 }
 
 export type ActionErrorCode = 'NOT_YOUR_TURN' | 'INVALID_ACTION' | 'GAME_OVER';

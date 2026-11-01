@@ -125,7 +125,7 @@ describe('RoomManager', () => {
   it('requires a nickname and an available game', () => {
     const p = h.newPlayer('');
     expect(h.rooms.createRoom(p, { gameId: 'gomoku', nickname: '  ' }).ok).toBe(false);
-    expect(h.rooms.createRoom(p, { gameId: 'doudizhu', nickname: '奶奶' })).toMatchObject({ ok: false, code: 'GAME_NOT_AVAILABLE' });
+    expect(h.rooms.createRoom(p, { gameId: 'guandan', nickname: '奶奶' })).toMatchObject({ ok: false, code: 'GAME_NOT_AVAILABLE' });
     expect(h.rooms.createRoom(p, { gameId: 'nope', nickname: '奶奶' }).ok).toBe(false);
   });
 
@@ -188,6 +188,9 @@ describe('RoomManager', () => {
     expect(act(h, a, room, { type: 'place', x: 4, y: 0 }).ok).toBe(true);
     expect(room.status).toBe('waiting');
     expect(room.lastResult?.winners).toEqual([0]);
+    // 累计积分：赢一局 +1
+    expect(room.totals).toEqual({ [a]: 1 });
+    expect(h.rooms.snapshotFor(room, b).room.totals[a]).toBe(1);
     const snapA = h.rooms.snapshotFor(room, a);
     expect(snapA.game?.result?.reason).toBe('five');
     expect(act(h, b, room, { type: 'place', x: 9, y: 9 })).toMatchObject({ ok: false, code: 'NOT_PLAYING' });
@@ -237,6 +240,27 @@ describe('RoomManager', () => {
     expect(h.rooms.leaveRoom(b).ok).toBe(true);
     expect(h.rooms.get(room.code)).toBeUndefined();
     expect(h.closed[0].notice.reason).toBe('empty');
+  });
+
+  it('leaving a game without an onLeave rule aborts it and everyone sees the result', () => {
+    const a = h.newPlayer('奶奶');
+    const r = h.rooms.createRoom(a, { gameId: 'doudizhu', nickname: '奶奶' });
+    if (!r.ok) throw new Error();
+    const b = h.newPlayer('小明');
+    const c = h.newPlayer('外婆');
+    h.rooms.joinRoom(b, { code: r.code, nickname: '小明' });
+    h.rooms.joinRoom(c, { code: r.code, nickname: '外婆' });
+    h.rooms.setReady(b, true);
+    h.rooms.setReady(c, true);
+    expect(h.rooms.startGame(a).ok).toBe(true);
+    const room = h.rooms.get(r.code)!;
+    expect(h.rooms.leaveRoom(c).ok).toBe(true);
+    const snap = h.rooms.snapshotFor(room, a);
+    expect(snap.room.status).toBe('waiting');
+    expect(snap.game?.result).toMatchObject({ reason: 'aborted', winners: [] });
+    expect(snap.game?.activeSeats).toEqual([]);
+    expect(room.totals).toEqual({});
+    expect(h.rooms.gameAction(a, { actionId: 'late', baseVersion: room.game!.version, action: { type: 'pass' } })).toMatchObject({ ok: false, code: 'NOT_PLAYING' });
   });
 
   it('switching rooms: leaves a waiting room, but refuses while seated in a live game', () => {

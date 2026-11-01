@@ -99,6 +99,7 @@ export function WaitingRoom({ snapshot, meta, onLeave }: { snapshot: Snapshot; m
                 key={s.seat}
                 seat={s}
                 isMe={s.playerId === you.playerId}
+                total={s.playerId ? room.totals[s.playerId] ?? 0 : 0}
                 canManage={isHost && room.status === 'waiting'}
                 canAddBot={isHost && !!meta.modes.includes('bot')}
                 busy={busy}
@@ -217,6 +218,7 @@ export function WaitingRoom({ snapshot, meta, onLeave }: { snapshot: Snapshot; m
 function SeatRow({
   seat,
   isMe,
+  total,
   canManage,
   canAddBot,
   busy,
@@ -225,6 +227,7 @@ function SeatRow({
 }: {
   seat: SeatView;
   isMe: boolean;
+  total: number;
   canManage: boolean;
   canAddBot: boolean;
   busy: boolean;
@@ -257,6 +260,7 @@ function SeatRow({
           {seat.isHost && <span className="badge badge-host">房主</span>}
           {seat.isBot && <span className="badge badge-bot">电脑</span>}
           {!seat.online && <span className="badge badge-offline">离线</span>}
+          {total !== 0 && <span className="badge badge-wait">积分 {total > 0 ? `+${total}` : total}</span>}
           {!seat.isHost && !seat.isBot && seat.online && (
             <span className={`badge ${seat.ready ? 'badge-ready' : 'badge-wait'}`}>{seat.ready ? '已准备' : '未准备'}</span>
           )}

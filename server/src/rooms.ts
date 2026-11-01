@@ -39,6 +39,8 @@ export interface Room {
   /** 最近已执行的操作 ID，用于防重放/防重复提交 */
   recentActionIds: string[];
   version: number;
+  /** 累计积分：playerId → 分数 */
+  totals: Record<string, number>;
 }
 
 export interface RoomManagerDeps {
@@ -57,6 +59,8 @@ export interface RoomManagerDeps {
   idleTtlMs?: number;
   /** 无任何操作时房间最长保留时间 */
   maxIdleMs?: number;
+  /** 电脑思考时间倍率（测试时调小） */
+  botDelayScale?: number;
 }
 
 type Result<T extends object = {}> = Ack<T>;
@@ -118,11 +122,13 @@ export class RoomManager {
     let game: Snapshot['game'] = null;
     if (room.game && engine) {
       const st = room.game.state;
+      const ended = room.status !== 'playing';
       game = {
         version: room.game.version,
         view: engine.view(st, seat >= 0 ? seat : null),
-        activeSeats: engine.activeSeats(st),
-        result: engine.result(st),
+        activeSeats: ended ? [] : engine.activeSeats(st),
+        // 对局被中止（有人退出、引擎没有自己的结束规则）时，用房间记录的结果
+        result: engine.result(st) ?? (ended ? room.lastResult : null),
       };
     }
     return {
@@ -134,6 +140,7 @@ export class RoomManager {
         hostId: room.hostId,
         matchIndex: room.matchIndex,
         lastResult: room.lastResult,
+        totals: room.totals,
         seats: room.seats.map((s, i) => ({
           seat: i,
           playerId: s?.playerId ?? null,
@@ -202,6 +209,7 @@ export class RoomManager {
       lastResult: null,
       recentActionIds: [],
       version: 1,
+      totals: {},
     };
     room.seats[0] = { playerId, nickname, isBot: false, ready: false };
     this.rooms.set(code, room);
@@ -461,6 +469,12 @@ export class RoomManager {
     if (result) {
       room.status = 'waiting';
       room.lastResult = result;
+      if (result.scores) {
+        result.scores.forEach((delta, seat) => {
+          const pid = room.seats[seat]?.playerId;
+          if (pid && delta) room.totals[pid] = (room.totals[pid] ?? 0) + delta;
+        });
+      }
       this.resetReady(room);
       this.cancelBot(room.code);
       this.log('game over', room.code, result.reason, result.winners);
@@ -489,7 +503,7 @@ export class RoomManager {
     if (botSeat === undefined) return;
     const version = room.game.version;
     const code = room.code;
-    const delay = engine.bot.delayMs ?? 800;
+    const delay = Math.round((engine.bot.delayMs ?? 800) * (this.deps.botDelayScale ?? 1));
     const handle = this.setTimer(() => {
       this.botTimers.delete(code);
       this.runBot(code, botSeat, version);
@@ -582,6 +596,7 @@ export class RoomManager {
     this.rooms.clear();
     for (const r of list) {
       if (!r || typeof r.code !== 'string' || !this.deps.engines[r.gameId]) continue;
+      if (!r.totals || typeof r.totals !== 'object') r.totals = {};
       this.rooms.set(r.code, r);
     }
     // 修正玩家与房间的对应关系

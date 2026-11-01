@@ -1,0 +1,495 @@
+/* ═════════════════ 斗地主 ═════════════════ */
+.ddz-wrap {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overflow: clip;
+}
+.ddz {
+  height: 100%;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+.ddz .d-header {
+  grid-area: header;
+  min-width: 0;
+}
+.ddz .d-left {
+  grid-area: left;
+}
+.ddz .d-right {
+  grid-area: right;
+}
+.ddz .d-table {
+  grid-area: table;
+}
+.ddz .d-actions {
+  grid-area: actions;
+}
+.ddz .d-hand {
+  grid-area: hand;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* 竖屏：顶栏 / 两个对手 / 牌桌 / 操作 / 手牌 */
+.ddz.is-portrait {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'header header'
+    'left right'
+    'table table'
+    'actions actions'
+    'hand hand';
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* 横屏：对手在左右两侧，牌桌居中，手牌一行铺满底部 */
+.ddz.is-landscape {
+  grid-template-columns: minmax(150px, 22%) minmax(0, 1fr) minmax(150px, 22%);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'left header right'
+    'left table right'
+    'actions actions actions'
+    'hand hand hand';
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.ddz.is-landscape .d-left,
+.ddz.is-landscape .d-right {
+  align-self: start;
+  flex-wrap: wrap;
+}
+
+/* 对手信息 */
+.opp {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  border: 2.5px solid transparent;
+}
+.opp.is-active {
+  border-color: #f2a33a;
+  background: #fffaf0;
+}
+.opp-main {
+  flex: 1;
+  min-width: 0;
+}
+.opp-name {
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opp-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 1.4em;
+}
+.opp-total {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  font-weight: 700;
+}
+.opp-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+}
+.opp-warn {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--danger);
+  white-space: nowrap;
+}
+.opp-flag {
+  position: absolute;
+  top: -9px;
+  right: 8px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #f2a33a;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  animation: gk-flag 1.6s ease-in-out infinite;
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.6;
+  background: var(--green-soft);
+  color: var(--green);
+  white-space: nowrap;
+}
+.role-badge.is-landlord {
+  background: #fde3c8;
+  color: #b4560f;
+}
+.role-badge.is-landlord::before {
+  content: '👑';
+  margin-right: 2px;
+}
+
+/* 牌桌 */
+.d-table {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at center, #3d8a63 0%, #2c6f4f 75%);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.18);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'tl tc tr'
+    'tm tm tm';
+  padding: 8px;
+  gap: 4px;
+  overflow: hidden;
+}
+.t-slot-left {
+  grid-area: tl;
+  justify-content: flex-start;
+}
+.t-slot-right {
+  grid-area: tr;
+  justify-content: flex-end;
+}
+.t-slot-me {
+  grid-area: tm;
+  justify-content: center;
+}
+.t-slot {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+  min-height: 0;
+}
+.t-center {
+  grid-area: tc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.t-bottom {
+  display: flex;
+  gap: 3px;
+  min-height: 24px;
+}
+.t-info {
+  color: #e9f7ee;
+  font-weight: 800;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.play-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  width: 100%;
+}
+.fit-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.fit-row.align-start {
+  justify-content: flex-start;
+}
+.fit-row.align-end {
+  justify-content: flex-end;
+}
+.t-bottom .fit-row {
+  width: auto;
+}
+.t-slot-left .play-slot {
+  align-items: flex-start;
+}
+.t-slot-right .play-slot {
+  align-items: flex-end;
+}
+.slot-label {
+  color: #e9f7ee;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.bubble {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-2);
+  font-weight: 800;
+}
+.bubble.is-bid {
+  background: #fff3d6;
+  color: #b4560f;
+}
+
+/* 操作区 */
+.d-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  min-width: 0;
+}
+.d-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1 1 100%;
+  min-width: 0;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+}
+.d-status-text {
+  min-width: 0;
+}
+.d-status.tone-mine {
+  color: var(--green);
+  background: var(--green-soft);
+}
+.d-status.tone-warn {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+.d-status.tone-wait,
+.d-status.tone-done {
+  color: var(--text-2);
+}
+.d-buttons {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+.d-buttons .btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0 0.5em;
+  max-width: 160px;
+}
+.d-buttons .d-play {
+  flex-grow: 1.4;
+}
+
+.ddz.is-landscape .d-status {
+  flex: 1 1 260px;
+  justify-content: flex-start;
+}
+.ddz.is-landscape .d-buttons {
+  width: auto;
+  flex: 0 1 auto;
+}
+.ddz.is-landscape .d-buttons .btn {
+  min-width: 84px;
+}
+
+/* 扑克牌 */
+.pk {
+  position: relative;
+  width: var(--cw);
+  height: calc(var(--cw) * 1.4);
+  border-radius: calc(var(--cw) * 0.1);
+  background: linear-gradient(160deg, #ffffff 0%, #fbf7f0 100%);
+  border: 1.5px solid #cbbba7;
+  box-shadow: -2px 1px 3px rgba(40, 25, 12, 0.18);
+  color: #2a2420;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s ease;
+}
+.pk.is-red {
+  color: #d23b2e;
+}
+.pk.is-selected {
+  border-color: #e0571f;
+  background: linear-gradient(160deg, #fff6e8 0%, #ffe9cc 100%);
+  box-shadow: 0 0 0 2px #f2a33a, -2px 2px 6px rgba(40, 25, 12, 0.25);
+}
+.pk-rank {
+  position: absolute;
+  left: calc(var(--cw) * 0.08);
+  top: calc(var(--cw) * 0.04);
+  font-size: calc(var(--cw) * 0.4);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.pk-suit {
+  position: absolute;
+  left: calc(var(--cw) * 0.1);
+  top: calc(var(--cw) * 0.46);
+  font-size: calc(var(--cw) * 0.32);
+  line-height: 1;
+}
+.pk-big {
+  position: absolute;
+  right: calc(var(--cw) * 0.08);
+  bottom: calc(var(--cw) * 0.04);
+  font-size: calc(var(--cw) * 0.62);
+  line-height: 1;
+  opacity: 0.9;
+}
+.pk-joker {
+  position: absolute;
+  left: calc(var(--cw) * 0.06);
+  top: calc(var(--cw) * 0.06);
+  display: flex;
+  flex-direction: column;
+  font-size: calc(var(--cw) * 0.34);
+  font-weight: 900;
+  line-height: 1.05;
+}
+.pk.is-joker::after {
+  content: '★';
+  position: absolute;
+  right: calc(var(--cw) * 0.1);
+  bottom: calc(var(--cw) * 0.08);
+  font-size: calc(var(--cw) * 0.5);
+}
+.pk-slot {
+  position: absolute;
+  top: 0;
+  transition: top 0.08s ease;
+}
+.pk-row {
+  position: relative;
+  height: calc(var(--cw) * 1.4);
+  flex: none;
+}
+.pk-row .pk-slot {
+  top: 0;
+}
+.hand {
+  position: relative;
+  touch-action: none;
+  cursor: pointer;
+}
+.hand.is-disabled {
+  opacity: 0.85;
+}
+.pk-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 40px;
+  border-radius: 5px;
+  background: repeating-linear-gradient(45deg, #c4442a 0 4px, #d65a3b 4px 8px);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.pk-back.is-warn {
+  background: repeating-linear-gradient(45deg, #b3261e 0 4px, #e04437 4px 8px);
+  animation: gk-flag 1s ease-in-out infinite;
+}
+.pk-back-num {
+  color: #fff;
+  font-weight: 900;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.pk-back-mini {
+  width: 18px;
+  height: 25px;
+  border-width: 1.5px;
+}
+
+/* 高的横屏（平板、电脑）：对手信息叠放在牌桌左上、右上角，不留两侧大片空白 */
+@media (orientation: landscape) and (min-height: 600px) {
+  .ddz.is-landscape {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'header'
+      'table'
+      'actions'
+      'hand';
+    max-width: 1280px;
+  }
+  .ddz.is-landscape .d-header {
+    max-width: 560px;
+    width: 100%;
+    justify-self: center;
+  }
+  .ddz.is-landscape .d-left,
+  .ddz.is-landscape .d-right {
+    grid-area: table;
+    z-index: 3;
+    margin: 12px;
+    width: min(280px, 30%);
+    flex-wrap: nowrap;
+  }
+  .ddz.is-landscape .d-left {
+    justify-self: start;
+  }
+  .ddz.is-landscape .d-right {
+    justify-self: end;
+  }
+  .ddz.is-landscape .d-table {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      '. tc .'
+      'tl . tr'
+      'tm tm tm';
+    padding: 12px 16px;
+  }
+  .ddz.is-landscape .t-slot-left,
+  .ddz.is-landscape .t-slot-right {
+    align-items: center;
+  }
+}
+
+@media (max-height: 430px) {
+  .ddz {
+    gap: 4px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .ddz .btn {
+    min-height: 44px;
+    font-size: 0.98rem;
+  }
+  .d-status {
+    padding: 2px 8px;
+    font-size: 0.92rem;
+  }
+  .opp {
+    padding: 4px 6px;
+  }
+  .t-info {
+    font-size: 0.78rem;
+  }
+}

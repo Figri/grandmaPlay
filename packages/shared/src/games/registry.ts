@@ -1,5 +1,6 @@
 import type { GameEngine } from '../game';
 import { gomokuEngine } from './gomoku/engine';
+import { doudizhuEngine } from './doudizhu/engine';
 
 /**
  * 服务端规则引擎注册表。新增游戏只需在这里登记引擎。
@@ -7,4 +8,5 @@ import { gomokuEngine } from './gomoku/engine';
  */
 export const ENGINES: Record<string, GameEngine> = {
   [gomokuEngine.meta.id]: gomokuEngine,
+  [doudizhuEngine.meta.id]: doudizhuEngine,
 };

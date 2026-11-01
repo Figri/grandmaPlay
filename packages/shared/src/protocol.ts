@@ -67,6 +67,8 @@ export interface RoomView {
   /** 已开始过的局数 */
   matchIndex: number;
   lastResult: GameResult | null;
+  /** 本房间累计积分：playerId → 分数 */
+  totals: Record<string, number>;
 }
 
 export interface GameSnapshot<V = unknown> {
