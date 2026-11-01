@@ -141,10 +141,13 @@ fi
 # ───────────── 6. Nginx（先只开 HTTP） ─────────────
 say "5/7 配置 Nginx"
 PUBLIC_IP=$(curl -fsS --max-time 3 http://100.100.100.200/latest/meta-data/eipv4 2>/dev/null || curl -fsS --max-time 6 https://api.ipify.org 2>/dev/null || echo "")
-resolve() { getent ahostsv4 "$1" 2>/dev/null | awk '{print $1; exit}'; }
+resolve() { { getent ahostsv4 "$1" 2>/dev/null || true; } | awk '{print $1; exit}'; }
 NAMES="$DOMAIN"
 WWW_OK=0
 if [ -n "$PUBLIC_IP" ] && [ "$(resolve "www.$DOMAIN")" = "$PUBLIC_IP" ]; then NAMES="$DOMAIN www.$DOMAIN"; WWW_OK=1; fi
+# 解析生效前也能用 http://服务器IP 访问
+HTTP_NAMES="$NAMES"
+if [ -n "$PUBLIC_IP" ]; then HTTP_NAMES="$NAMES $PUBLIC_IP"; fi
 
 PROXY_BLOCK="
     location /socket.io/ {
@@ -169,6 +172,11 @@ PROXY_BLOCK="
         proxy_set_header X-Forwarded-Proto \$scheme;
     }"
 
+# Ubuntu/Debian 自带的默认站点会占用 80 端口的 default_server，专用服务器上直接移除
+if [ -L /etc/nginx/sites-enabled/default ] && grep -q "Welcome to nginx" /var/www/html/index.nginx-debian.html 2>/dev/null; then
+  rm -f /etc/nginx/sites-enabled/default
+fi
+
 CONF=/etc/nginx/conf.d/grandma-play.conf
 SSL_DIR=/etc/nginx/ssl/$DOMAIN
 if [ ! -s "$SSL_DIR/fullchain.pem" ]; then
@@ -176,7 +184,7 @@ if [ ! -s "$SSL_DIR/fullchain.pem" ]; then
 # 由 setup-server.sh 生成（HTTP 阶段）
 server {
     listen 80;
-    server_name $NAMES;
+    server_name $HTTP_NAMES;
     location /.well-known/acme-challenge/ { root /var/www/acme; }
 $PROXY_BLOCK
 }
@@ -231,7 +239,7 @@ cat >"$CONF" <<EOF
 # 由 setup-server.sh 生成（HTTPS）
 server {
     listen 80;
-    server_name $NAMES;
+    server_name $HTTP_NAMES;
     location /.well-known/acme-challenge/ { root /var/www/acme; }
     location / { return 301 https://$DOMAIN\$request_uri; }
 }
