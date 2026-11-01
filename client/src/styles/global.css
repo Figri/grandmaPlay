@@ -1,0 +1,522 @@
+/* ───────────── 设计令牌：温暖、清爽、大字号 ───────────── */
+:root {
+  --bg: #fff7ec;
+  --bg-2: #fdebd3;
+  --surface: #ffffff;
+  --surface-2: #fff3e3;
+  --line: #f0dcc2;
+  --text: #3b2a1e;
+  --text-2: #75604f;
+  --text-3: #9c8674;
+  --primary: #d9542b;
+  --primary-press: #bd4420;
+  --primary-soft: #fde3d6;
+  --green: #22895a;
+  --green-soft: #dcf3e6;
+  --amber: #b86e00;
+  --amber-soft: #fff0cc;
+  --gray: #a0938a;
+  --danger: #c43b3b;
+  --shadow-1: 0 1px 2px rgba(91, 55, 25, 0.08), 0 2px 8px rgba(91, 55, 25, 0.06);
+  --shadow-2: 0 4px 18px rgba(91, 55, 25, 0.12);
+  --radius: 16px;
+  --radius-sm: 12px;
+  --tap: 52px;
+  --font: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC',
+    'Source Han Sans SC', 'Helvetica Neue', Arial, sans-serif;
+
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 17px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+@media (min-width: 400px) {
+  html {
+    font-size: 18px;
+  }
+}
+@media (min-width: 1000px) and (min-height: 700px) {
+  html {
+    font-size: 19px;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100vh;
+  height: var(--app-h, 100vh);
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ───────────── 按钮 ───────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: var(--tap);
+  padding: 0 1.2em;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:focus-visible {
+  outline: 3px solid #f2a33a;
+  outline-offset: 2px;
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.btn svg {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 3px 0 var(--primary-press);
+}
+.btn-primary:active:not(:disabled) {
+  background: var(--primary-press);
+  box-shadow: 0 1px 0 var(--primary-press);
+}
+.btn-green {
+  background: var(--green);
+  color: #fff;
+  box-shadow: 0 3px 0 #18684a;
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+  box-shadow: 0 2px 0 var(--line);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  border-color: transparent;
+}
+.btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.btn-danger-text {
+  color: var(--danger);
+}
+.btn-lg {
+  min-height: 58px;
+  font-size: 1.2rem;
+  padding: 0 1.6em;
+}
+.btn-sm {
+  min-height: 44px;
+  font-size: 0.95rem;
+  padding: 0 0.9em;
+}
+.btn-block {
+  width: 100%;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+}
+.icon-btn:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+.icon-btn svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ───────────── 卡片 / 输入 ───────────── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  padding: 16px;
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--line);
+  background: var(--surface-2);
+  font-size: 1.15rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input:focus {
+  border-color: #f2a33a;
+  background: #fff;
+}
+.input.is-error {
+  border-color: var(--danger);
+}
+.field-error {
+  color: var(--danger);
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+.hint {
+  color: var(--text-2);
+  font-size: 0.95rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.chip.is-active {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* ───────────── 头像 / 徽章 ───────────── */
+.avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fff;
+  position: relative;
+}
+.avatar .presence {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  background: var(--gray);
+}
+.avatar .presence.is-online {
+  background: #2fbf71;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.badge-host {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.badge-ready {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.badge-wait {
+  background: #f1ece7;
+  color: var(--text-2);
+}
+.badge-offline {
+  background: #f1ece7;
+  color: var(--text-3);
+}
+.badge-bot {
+  background: #e6efff;
+  color: #3c63b0;
+}
+
+/* ───────────── 顶部栏 ───────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 4px 8px;
+}
+.topbar-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 46px;
+  padding: 0 12px 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.back-btn svg {
+  width: 24px;
+  height: 24px;
+}
+.back-btn:active {
+  background: #fff;
+}
+
+/* ───────────── 网络状态横幅 ───────────── */
+.conn-banner {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--safe-t) + 8px);
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #3b2a1e;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: var(--shadow-2);
+}
+.conn-banner .btn {
+  min-height: 36px;
+  font-size: 0.9rem;
+  padding: 0 12px;
+}
+.spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: spin 0.9s linear infinite;
+}
+.spinner.dark {
+  border-color: rgba(59, 42, 30, 0.2);
+  border-top-color: var(--primary);
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ───────────── 提示气泡 ───────────── */
+.toasts {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-b) + 96px);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  padding: 0 16px;
+}
+.toast {
+  max-width: 100%;
+  padding: 12px 20px;
+  border-radius: 14px;
+  background: rgba(59, 42, 30, 0.92);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: var(--shadow-2);
+  animation: toast-in 0.18s ease-out;
+}
+.toast.is-error {
+  background: rgba(176, 45, 45, 0.95);
+}
+.toast.is-success {
+  background: rgba(27, 120, 78, 0.95);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ───────────── 对话框 ───────────── */
+.dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--safe-t) + 16px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + 16px) calc(var(--safe-l) + 16px);
+  background: rgba(40, 25, 12, 0.45);
+  animation: fade-in 0.15s ease-out;
+}
+.dialog {
+  width: 100%;
+  max-width: 440px;
+  max-height: 100%;
+  overflow: auto;
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 22px 20px 18px;
+  box-shadow: var(--shadow-2);
+}
+.dialog-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.dialog-body {
+  color: var(--text-2);
+  font-size: 1.05rem;
+}
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.dialog-actions .btn {
+  flex: 1 1 140px;
+}
+.dialog ol {
+  margin: 0;
+  padding-left: 1.3em;
+}
+.dialog li + li {
+  margin-top: 6px;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ───────────── 通用页面骨架 ───────────── */
+.page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--safe-t) var(--safe-r) 0 var(--safe-l);
+}
+.page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.center-fill {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
